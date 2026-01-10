@@ -1,0 +1,9 @@
+numpy
+pandas
+scikit-learn>=1.6.0
+litellm
+python-dotenv
+mcp
+fastmcp
+tqdm
+pyyaml
