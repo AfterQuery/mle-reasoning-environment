@@ -8,11 +8,13 @@ from litellm import acompletion
 
 class LLM:
     def __init__(
-        self, model_name: str, max_tokens: int = 8192, temperature: float = 0.0
+        self, model_name: str, max_tokens: int = 8192, temperature: float = 0.0,
+        reasoning: Optional[Dict] = None
     ):
         self.model_name = model_name
         self.max_tokens = max_tokens
         self.temperature = temperature
+        self.reasoning = reasoning  # e.g. {"effort": "high"} — passed as reasoning_effort to LiteLLM
         self.provider = self._get_provider(model_name)
 
     def _get_provider(self, model_name: str) -> str:
@@ -31,6 +33,8 @@ class LLM:
         }
         if tools:
             kwargs["tools"] = tools
+        if self.reasoning:
+            kwargs["reasoning_effort"] = self.reasoning.get("effort", "high")
         return await acompletion(**kwargs)
 
     def get_tool_calls(self, response: Any) -> List[Dict]:
