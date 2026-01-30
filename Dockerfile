@@ -16,4 +16,9 @@ COPY files/ /workspace/files/
 # ENV PYTHONPATH=/workspace/tools:$PYTHONPATH
 WORKDIR /workspace/tools
 
+# Expose port for Cloud Run
+EXPOSE 8080
+ENV PORT=8080
+
+# Default: CLI mode. For HTTP server: python http_server.py
 CMD ["python", "run_agent.py"]
