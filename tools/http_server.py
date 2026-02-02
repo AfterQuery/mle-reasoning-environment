@@ -584,7 +584,8 @@ async def run_task_sync_endpoint(request: TaskRequest):
     """
     print(f"[run-sync] Starting synchronous run for task {request.task_id}")
     if request.metadata:
-        print(f"[run-sync] Metadata: {request.metadata}")
+        # Log only keys, not values (may contain PII)
+        print(f"[run-sync] Metadata keys: {list(request.metadata.keys())}")
 
     result = await run_task(request)
 
