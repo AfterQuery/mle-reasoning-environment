@@ -12,6 +12,7 @@ Usage:
 Endpoints:
   POST /run        - Run agent synchronously (legacy, may timeout)
   POST /run-async  - Run agent asynchronously, returns job_id immediately
+  POST /run-sync   - Run agent synchronously (for Cloud Tasks integration)
   GET /jobs/{id}   - Check job status
   GET /health      - Health check
 """
@@ -562,6 +563,34 @@ async def run_task_async_endpoint(
         status=JobStatus.PENDING.value,
         message="Task submitted successfully. Use GET /jobs/{job_id} to check status.",
     )
+
+
+@app.post("/run-sync", response_model=TaskResponse)
+async def run_task_sync_endpoint(request: TaskRequest):
+    """
+    Run an MLE agent task synchronously (blocking).
+
+    Designed for use with Cloud Tasks or other task queue systems that
+    make HTTP requests and wait for completion. The HTTP connection stays
+    open until the task completes, which keeps Cloud Run instances alive.
+
+    Accepts the same payload as /run-async but ignores callback fields.
+    Returns the full TaskResponse with evaluation results.
+
+    Recommended Cloud Run settings when using this endpoint:
+    - --timeout=3600 (1 hour max)
+    - --concurrency=1 (one task per instance)
+    - --memory=4Gi --cpu=2
+    """
+    print(f"[run-sync] Starting synchronous run for task {request.task_id}")
+    if request.metadata:
+        # Log only keys, not values (may contain PII)
+        print(f"[run-sync] Metadata keys: {list(request.metadata.keys())}")
+
+    result = await run_task(request)
+
+    print(f"[run-sync] Completed task {request.task_id} with status {result.status}")
+    return result
 
 
 @app.get("/jobs/{job_id}", response_model=JobStatusResponse)
